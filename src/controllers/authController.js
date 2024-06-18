@@ -58,6 +58,8 @@ exports.register = async (req, res) => {
 };
 
 // Login a user
+
+
 exports.login = async (req, res) => {
     const { email, password } = req.body;
 
@@ -74,7 +76,7 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        // Generate JWT token
+        // Generate JWT token and include user role in response
         const payload = {
             user: {
                 id: user.id,
@@ -88,7 +90,7 @@ exports.login = async (req, res) => {
             { expiresIn: '1h' },
             (err, token) => {
                 if (err) throw err;
-                res.json({ token });
+                res.json({ token, user: payload.user }); // Include user object in response
             }
         );
     } catch (error) {

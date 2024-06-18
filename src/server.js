@@ -2,8 +2,13 @@ const express = require('express');
 const connectDB = require('./config/db'); // Adjust the path as needed
 const authRoutes = require('./routes/authRoutes');
 const newsRoutes = require('./routes/newsRoutes');
+const userRoutes = require('./routes/userRoutes');
+const cors = require('cors'); 
 
 const app = express();
+
+// Use CORS middleware
+app.use(cors());
 
 // Connect to database
 connectDB();
@@ -14,6 +19,7 @@ app.use(express.json());
 // Define routes
 app.use('/api/auth', authRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/user', userRoutes);
 
 const PORT = process.env.PORT || 5000;
 
