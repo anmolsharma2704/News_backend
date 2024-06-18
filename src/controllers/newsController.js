@@ -24,7 +24,7 @@ exports.createNews = async (req, res) => {
     }
 };
 
-// Update a news article
+
 exports.updateNews = async (req, res) => {
     const { title, content, city, state, images, youtubeLink } = req.body;
     const newsId = req.params.id;
@@ -38,15 +38,20 @@ exports.updateNews = async (req, res) => {
         }
 
         // Ensure the reporter is updating their own news article
-        if (news.author.toString() !== author) {
+        if (!news.reporter || news.reporter.toString() !== author) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        news = await News.findByIdAndUpdate(
-            newsId,
-            { $set: { title, content, city, state, images, youtubeLink } },
-            { new: true }
-        );
+        // Update news article
+        news.title = title;
+        news.content = content;
+        news.city = city;
+        news.state = state;
+        news.images = images;
+        news.youtubeLink = youtubeLink;
+        news.status = 'pending'; // Set status to pending after update
+
+        await news.save();
 
         res.json({ message: 'News article updated successfully', news });
     } catch (error) {
