@@ -1,61 +1,77 @@
+// src/controllers/newsController.js
+
 const News = require('../models/News');
+const upload = require('../middleware/multerMiddleware');
 
-// Create a news article
 exports.createNews = async (req, res) => {
-    const author = req.user.id;
-    const { title, content, city, state, images, youtubeLink } = req.body;
+    upload.array('images')(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json({ message: err });
+        }
 
-    try {
-        const news = new News({
-            title,
-            content,
-            city,
-            state,
-            images,
-            youtubeLink,
-            reporter: author,
-            status: 'pending', // or 'draft' based on your application logic
-        });
+        const author = req.user.id;
+        const { title, content, city, state, youtubeLink } = req.body;
+        const images = req.files ? req.files.map(file => file.path) : [];
 
-        await news.save();
-        res.json({ message: 'News article created successfully', news });
-    } catch (error) {
-        console.error('Create news error:', error.message);
-        res.status(500).send('Server error');
-    }
+        try {
+            const news = new News({
+                title,
+                content,
+                city,
+                state,
+                images,
+                youtubeLink,
+                reporter: author,
+                status: 'pending',
+            });
+
+            await news.save();
+            res.json({ message: 'News article created successfully', news });
+        } catch (error) {
+            console.error('Create news error:', error.message);
+            res.status(500).send('Server error');
+        }
+    });
 };
 
-// Update a news article
 exports.updateNews = async (req, res) => {
-    const { title, content, city, state, images, youtubeLink } = req.body;
-    const newsId = req.params.id;
-    const author = req.user.id;
-
-    try {
-        let news = await News.findByIdAndUpdate(newsId, {
-            title,
-            content,
-            city,
-            state,
-            images,
-            youtubeLink,
-            status: 'pending', // or update status based on your application logic
-        }, { new: true });
-
-        if (!news) {
-            return res.status(404).json({ message: 'News article not found' });
+    upload.array('images')(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json({ message: err });
         }
 
-        // Ensure the reporter is updating their own news article
-        if (news.reporter.toString() !== author) {
-            return res.status(401).json({ message: 'Unauthorized, you can only update your articles' });
-        }
+        const { title, content, city, state, youtubeLink } = req.body;
+        const newsId = req.params.id;
+        const author = req.user.id;
+        const images = req.files ? req.files.map(file => file.path) : [];
 
-        res.json({ message: 'News article updated successfully', news });
-    } catch (error) {
-        console.error('Update news error:', error.message);
-        res.status(500).send('Server error');
-    }
+        try {
+            let news = await News.findById(newsId);
+
+            if (!news) {
+                return res.status(404).json({ message: 'News article not found' });
+            }
+
+            if (news.reporter.toString() !== author) {
+                return res.status(401).json({ message: 'Unauthorized, you can only update your articles' });
+            }
+
+            news.title = title || news.title;
+            news.content = content || news.content;
+            news.city = city || news.city;
+            news.state = state || news.state;
+            news.images = images.length > 0 ? images : news.images;
+            news.youtubeLink = youtubeLink || news.youtubeLink;
+            news.status = 'pending';
+
+            await news.save();
+
+            res.json({ message: 'News article updated successfully', news });
+        } catch (error) {
+            console.error('Update news error:', error.message);
+            res.status(500).send('Server error');
+        }
+    });
 };
 
 // Approve a news article (only accessible to admins)
