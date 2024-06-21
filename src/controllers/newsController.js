@@ -3,17 +3,35 @@
 const News = require('../models/News');
 const upload = require('../middleware/multerMiddleware');
 
+const fs = require('fs').promises;
+
 exports.createNews = async (req, res) => {
     upload.array('images')(req, res, async (err) => {
         if (err) {
-            return res.status(400).json({ message: err });
+            return res.status(400).json({ message: err.message });
         }
 
         const author = req.user.id;
-        const { title, content, city, state, youtubeLink } = req.body;
-        const images = req.files ? req.files.map(file => file.path) : [];
+        const { title, content, city, state, youtubeLink ,date} = req.body;
+
+        let images = [];
+        if (req.files) {
+            for (const file of req.files) {
+                const imageBuffer = await fs.readFile(file.path);
+                const base64Image = imageBuffer.toString('base64');
+                images.push(base64Image);
+            }
+        }
+
+        const role = req.user.role;
 
         try {
+            let status = 'pending';
+
+            if (role === 'trusted-reporter') {
+                status = 'approved';
+            }
+
             const news = new News({
                 title,
                 content,
@@ -22,7 +40,8 @@ exports.createNews = async (req, res) => {
                 images,
                 youtubeLink,
                 reporter: author,
-                status: 'pending',
+                status,
+                date
             });
 
             await news.save();
@@ -37,13 +56,22 @@ exports.createNews = async (req, res) => {
 exports.updateNews = async (req, res) => {
     upload.array('images')(req, res, async (err) => {
         if (err) {
-            return res.status(400).json({ message: err });
+            return res.status(400).json({ message: err.message });
         }
 
-        const { title, content, city, state, youtubeLink } = req.body;
+        const { title, content, city, state, youtubeLink,date } = req.body;
         const newsId = req.params.id;
         const author = req.user.id;
-        const images = req.files ? req.files.map(file => file.path) : [];
+        const role = req.user.role;
+
+        let images = [];
+        if (req.files) {
+            for (const file of req.files) {
+                const imageBuffer = await fs.readFile(file.path);
+                const base64Image = imageBuffer.toString('base64');
+                images.push(base64Image);
+            }
+        }
 
         try {
             let news = await News.findById(newsId);
@@ -62,7 +90,13 @@ exports.updateNews = async (req, res) => {
             news.state = state || news.state;
             news.images = images.length > 0 ? images : news.images;
             news.youtubeLink = youtubeLink || news.youtubeLink;
-            news.status = 'pending';
+            news.date = date;
+
+            if (role === 'trusted-reporter') {
+                news.status = 'approved';
+            } else {
+                news.status = 'pending';
+            }
 
             await news.save();
 
@@ -73,6 +107,7 @@ exports.updateNews = async (req, res) => {
         }
     });
 };
+
 
 // Approve a news article (only accessible to admins)
 exports.approveNews = async (req, res) => {
@@ -155,3 +190,31 @@ exports.getOwnNews = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
+
+exports.getNewsById = async (req, res) => {
+    try {
+      const newsId = req.params.id;
+      const news = await News.findById(newsId).populate('reporter', ['username', 'email']);
+      if (!news) {
+        return res.status(404).json({ message: 'News article not found' });
+      }
+      res.json(news);
+    } catch (error) {
+      console.error('Get news by id error:', error.message);
+      res.status(500).send('Server error');
+    }
+  };
+  
+  exports.getNewsByAuthorId = async (req, res) => {
+    try {
+      const authorId = req.params.AuthorId;
+      const newsArticles = await News.find({ reporter: authorId }).populate('reporter', ['username', 'email']);
+      if (!newsArticles) {
+        return res.status(404).json({ message: 'No news articles found for this author' });
+      }
+      res.json(newsArticles);
+    } catch (error) {
+      console.error('Get news by author ID error:', error.message);
+      res.status(500).send('Server error');
+    }
+  };

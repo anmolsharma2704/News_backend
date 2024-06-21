@@ -40,3 +40,25 @@ exports.getAllUsers = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+// Update user role
+exports.updateUserRole = async (req, res) => {
+    const { role } = req.params;
+    const { id } = req.params;
+
+    try {
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.role = role;
+        await user.save();
+
+        res.json({ message: 'User role updated successfully', user });
+    } catch (error) {
+        console.error('Update user role error:', error.message);
+        res.status(500).send('Server error');
+    }
+};

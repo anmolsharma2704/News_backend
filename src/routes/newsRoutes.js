@@ -1,6 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { createNews, updateNews, approveNews, getAllNews, deleteNews, getPendingNews, getOwnNews } = require('../controllers/newsController');
+const {
+  createNews,
+  updateNews,
+  approveNews,
+  getAllNews,
+  deleteNews,
+  getPendingNews,
+  getOwnNews,
+  getNewsById,
+  getNewsByAuthorId
+} = require('../controllers/newsController');
 const { authMiddleware, adminMiddleware, reporterMiddleware } = require('../middleware/authMiddleware');
 
 // Route to create news (reporter only)
@@ -19,9 +29,16 @@ router.delete('/delete/:id', authMiddleware, deleteNews);
 router.get('/all', getAllNews);
 
 // Route to get all pending news (admin only)
-router.get('/pending', authMiddleware,adminMiddleware, getPendingNews);
+router.get('/pending', authMiddleware, adminMiddleware, getPendingNews);
 
 // Route to get news authored by the logged-in reporter
-router.get('/own', authMiddleware,reporterMiddleware, getOwnNews);
+router.get('/own', authMiddleware, reporterMiddleware, getOwnNews);
+
+// Route to get news by ID
+router.get('/:id', getNewsById);
+
+// Route to get news by Author ID (admin only)
+router.get('/author/:AuthorId', authMiddleware, adminMiddleware, getNewsByAuthorId);
+
 
 module.exports = router;
