@@ -1,28 +1,37 @@
-// src/middleware/multerMiddleware.js
-
 const multer = require('multer');
-const path = require('path');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const path = require('path'); // Add this line to import the path module
+const cloudinary = require('../config/cloudinaryConfig'); // Adjust path as per your project structure
 
-const storage = multer.diskStorage({
-    destination: './uploads/', // Adjust the path as needed
-    filename: (req, file, cb) => {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
+// Multer configuration
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'news_images', // Optional: folder name in Cloudinary
+    allowed_formats: ['jpg', 'jpeg', 'png']
+  }
 });
 
+// File filter function
+const fileFilter = (req, file, cb) => {
+  // Allowed file extensions
+  const filetypes = /jpeg|jpg|png/;
+  // Check file extension
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  // Check mime type
+  const mimetype = filetypes.test(file.mimetype);
+  
+  if (extname && mimetype) {
+    return cb(null, true);
+  } else {
+    cb('Error: Images only!');
+  }
+};
+
+// Multer upload middleware
 const upload = multer({
-    storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit for file size
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|gif/;
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = filetypes.test(file.mimetype);
-        if (mimetype && extname) {
-            return cb(null, true);
-        } else {
-            cb('Error: Images Only!');
-        }
-    }
+  storage: storage,
+  fileFilter: fileFilter
 });
 
 module.exports = upload;

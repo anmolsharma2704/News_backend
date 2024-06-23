@@ -15,11 +15,8 @@ exports.authMiddleware = (req, res, next) => {
         req.user = decoded.user;
         next();
     } catch (err) {
-        console.error('Token verification error:', err.message);
-        if (err.name === 'TokenExpiredError') {
-            return res.status(401).json({ message: 'Token expired' });
-        }
-        res.status(401).json({ message: 'Token is not valid' });
+        // console.error('Token verification error:', err.message);
+        return res.status(401).json({ message: 'Token is not valid' });    
     }
 };
 

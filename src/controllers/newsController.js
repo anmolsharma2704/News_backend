@@ -1,9 +1,6 @@
-// src/controllers/newsController.js
-
 const News = require('../models/News');
 const upload = require('../middleware/multerMiddleware');
-
-const fs = require('fs').promises;
+const cloudinary = require('../config/cloudinaryConfig'); // Path to your cloudinaryConfig file
 
 exports.createNews = async (req, res) => {
     upload.array('images')(req, res, async (err) => {
@@ -12,32 +9,30 @@ exports.createNews = async (req, res) => {
         }
 
         const author = req.user.id;
-        const { title, content, city, state, youtubeLink ,date} = req.body;
+        const { title, content, city, state, youtubeLink, date } = req.body;
 
-        let images = [];
+        let imageUrls = [];
         if (req.files) {
             for (const file of req.files) {
-                const imageBuffer = await fs.readFile(file.path);
-                const base64Image = imageBuffer.toString('base64');
-                images.push(base64Image);
+                const result = await cloudinary.uploader.upload(file.path);
+                imageUrls.push(result.secure_url);
             }
         }
 
         const role = req.user.role;
+        let status = 'pending';
+
+        if (role === 'trusted-reporter') {
+            status = 'approved';
+        }
 
         try {
-            let status = 'pending';
-
-            if (role === 'trusted-reporter') {
-                status = 'approved';
-            }
-
             const news = new News({
                 title,
                 content,
                 city,
                 state,
-                images,
+                images: imageUrls,
                 youtubeLink,
                 reporter: author,
                 status,
@@ -59,17 +54,16 @@ exports.updateNews = async (req, res) => {
             return res.status(400).json({ message: err.message });
         }
 
-        const { title, content, city, state, youtubeLink,date } = req.body;
+        const { title, content, city, state, youtubeLink, date } = req.body;
         const newsId = req.params.id;
         const author = req.user.id;
         const role = req.user.role;
 
-        let images = [];
+        let imageUrls = [];
         if (req.files) {
             for (const file of req.files) {
-                const imageBuffer = await fs.readFile(file.path);
-                const base64Image = imageBuffer.toString('base64');
-                images.push(base64Image);
+                const result = await cloudinary.uploader.upload(file.path);
+                imageUrls.push(result.secure_url);
             }
         }
 
@@ -88,7 +82,7 @@ exports.updateNews = async (req, res) => {
             news.content = content || news.content;
             news.city = city || news.city;
             news.state = state || news.state;
-            news.images = images.length > 0 ? images : news.images;
+            news.images = imageUrls.length > 0 ? imageUrls : news.images;
             news.youtubeLink = youtubeLink || news.youtubeLink;
             news.date = date;
 
@@ -107,7 +101,6 @@ exports.updateNews = async (req, res) => {
         }
     });
 };
-
 
 // Approve a news article (only accessible to admins)
 exports.approveNews = async (req, res) => {
