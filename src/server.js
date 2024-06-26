@@ -13,12 +13,13 @@ const app = express();
 // app.use(cors());
 
 const corsOptions = {
-    origin: 'http://localhost:3000',  // Replace with your frontend URL in production
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allowed HTTP methods
+    origin: '*',  // Replace with your frontend URL in production
+    methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],  // Allowed HTTP methods
     allowedHeaders: ['Content-Type', 'Authorization'],  // Allowed headers
   };
   
   // Enable CORS with options
+
   app.use(cors(corsOptions));
 
 // Connect to database
