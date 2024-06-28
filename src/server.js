@@ -13,7 +13,8 @@ const app = express();
 // app.use(cors());
 
 const corsOptions = {
-    origin: 'https://www.newsdayrajasthan.in',  // Replace with your frontend URL in production
+    // origin: 'https://www.newsdayrajasthan.in',  // Replace with your frontend URL in production
+    origin: process.env.FRONTEND_URL,  // Replace with your frontend URL in production
     methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],  // Allowed HTTP methods
     allowedHeaders: ['Content-Type', 'Authorization'],  // Allowed headers
   };
