@@ -5,10 +5,11 @@ const newsRoutes = require('./routes/newsRoutes');
 const userRoutes = require('./routes/userRoutes');
 const cors = require('cors'); 
 const app = express();
+const dotenv = require('dotenv');
 
 // Serve static files from the 'uploads' directory
 
-
+dotenv.config()
 // // Use CORS middleware
 // app.use(cors());
 
