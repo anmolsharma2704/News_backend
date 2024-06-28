@@ -4,7 +4,7 @@ const { registerUser, loginUser, forgotPassword, resetPassword } = require('../c
 const { authMiddleware,adminMiddleware } = require('../middleware/authMiddleware');
 
 // User Authentication Routes
-router.post("/register",authMiddleware, adminMiddleware, registerUser);
+router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post('/password/forgot', forgotPassword);
 router.put('/password/reset', resetPassword); // Corrected endpoint path for password reset
