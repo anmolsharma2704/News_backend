@@ -141,7 +141,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
         If you did not request a password reset, please ignore this email. Your account remains secure, and no changes have been made.
 
-        For any further assistance, please contact our support team at support@${process.env.COMPANY_NAME.toLowerCase()}.com.
+        For any further assistance, please contact our support team at newsdayrajasthan@gmail.com.
 
         Best regards,
 
