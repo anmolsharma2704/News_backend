@@ -130,7 +130,25 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
     const resetPasswordUrl = `${baseURL}/password/reset/${resetToken}`;
 
     // Email message
-    const message = `Your password reset token is:\n\n${resetPasswordUrl}\n\nValid for 15 minutes.\n\nIf you did not request this, please ignore this email.`;
+    const message = `
+        Dear User,
+
+        We received a request to reset your password for your ${process.env.COMPANY_NAME} account. If you made this request, please click the link below to reset your password:
+
+        ${resetPasswordUrl}
+
+        This link is valid for 15 minutes. After that, you will need to request a new password reset.
+
+        If you did not request a password reset, please ignore this email. Your account remains secure, and no changes have been made.
+
+        For any further assistance, please contact our support team at support@${process.env.COMPANY_NAME.toLowerCase()}.com.
+
+        Best regards,
+
+        The ${process.env.COMPANY_NAME} Team
+
+        Note: Please be cautious and make sure to secure your account by using a strong password and updating it regularly. If you suspect any unauthorized access, contact our support team immediately.
+    `;
 
     try {
         // Send email
@@ -155,6 +173,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHander('Email could not be sent.', 500));
     }
 });
+
   
 // Reset Password
 exports.resetPassword = async (req, res, next) => {
