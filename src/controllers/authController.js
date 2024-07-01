@@ -86,13 +86,13 @@ exports.loginUser = async (req, res) => {
 jwt.sign(
     payload,
     process.env.JWT_SECRET,
-    { expiresIn: '1h' },
+    { expiresIn: '7d' },
     (err, token) => {
         if (err) throw err;
 
         // Set cookie options
         const options = {
-            expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),  // Cookie expires in 7 days
             httpOnly: true,
         };
 
